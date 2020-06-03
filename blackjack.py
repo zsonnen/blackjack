@@ -274,22 +274,23 @@ class Player(Hand):
                 break
             if len(self.hand) == 2:
                 action = input("Would you like to hit, stand, or double-down: Enter [h, s, or d]: ")
+                if action == "d":
+                    self.double_down()
+                    self.hit(deck)
+                    self.card_visual()
+                    if self.hand_score() > 21:
+                        self.alive = False
+                    break
             else:
                 action = input("Would you like to hit or stand: Enter [h or s]: ")
-            if action == "d":
-                self.double_down()
-                self.hit(deck)
-                self.card_visual()
-                if self.hand_score() > 21:
-                    self.alive = False
-                break
+                if action not in ['h', 's']:
+                    print('invalid input. try again')
             if action == "h":
                 self.hit(deck)
                 if self.split_cards:
                     self.mini_card_visual()
                 else:
                     self.card_visual()
-                # print(f"Card Total: {self.hand_score()}\n")
             if action == "s":
                 break
 
