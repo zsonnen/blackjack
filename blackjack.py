@@ -1,5 +1,5 @@
-import collections
 import random
+import collections
 import time
 import os
 import visuals
@@ -12,7 +12,15 @@ visuals file imported: numerous pretty ways to display cards
 def clear():
     os.system('cls' if os.name == 'nt' else 'clear')
 
+def validate_answer(question):
+    while True:
+        answer = input(question)
+        if answer in ['y', 'n']:
+            return answer == 'y'
+
+
 Card = collections.namedtuple('Card', ['value', 'suit'])
+
 
 class Deck:
 
@@ -87,12 +95,25 @@ class Deck:
             visuals.print_card(card)
 
 
-
 class MultiDeck(Deck):
 
     def __init__(self, num_decks):
         Deck.__init__(self)
         self.values = Deck.values * num_decks
+
+    #Shuffle when deck is at 50% length
+    def is_shuffle_time(self, num_decks):
+        return  len(self) < (len(MultiDeck(num_decks))/2)
+
+    def shuffle_time(self, num_decks):
+        print("Reshuffling the Deck...\n")
+        time.sleep(1)
+        print("Reshuffling the Deck...\n")
+        time.sleep(1)
+        print("Reshuffling the Deck...\n")
+        time.sleep(1)
+        deck = MultiDeck(num_decks)
+        self.shuffle()
 
 
 class Hand:
@@ -134,7 +155,6 @@ class Hand:
 
         return score
 
-    #move to Player class?
     def card_visual(self):
         card_list = []
         for card in self.hand:
@@ -142,6 +162,7 @@ class Hand:
             card_list.append(card_vis)
 
         visuals.print_cards(card_list)
+        print(f"\nTotal of: {self.hand_score()}\n")
 
     def mini_card_visual(self):
         card_list = []
@@ -150,6 +171,7 @@ class Hand:
             card_list.append(card_vis)
 
         visuals.print_cards(card_list)
+        print(f"\nTotal of: {self.hand_score()}\n")
 
 
 class Player(Hand):
@@ -168,6 +190,12 @@ class Player(Hand):
     def remove_chips(self, chips):
         self.chips -= chips
 
+    def reset(self):
+        self.hand = []
+        self.alive = True
+        self.split_cards = False
+        self.bet, self.bet_two = 0, 0
+
     def has_black_jack(self):
         return len(self.hand) == 2 and self.hand_score() == 21
 
@@ -184,34 +212,34 @@ class Player(Hand):
                 self.remove_chips(float(bet))
                 break
 
-    def additional_bet(self):
+    def added_wager(self):
         while True:
-            other_bet = input(f"Enter additional wager. You may bet up to your original ${self.bet} or less: $")
-            if not other_bet.isdecimal():
+            other_bet = input(f"\nEnter additional wager. You may bet up to your original ${self.bet} or less: $")
+            if not other_bet.isdecimal() or float(other_bet) > self.bet:
                 print("invalid entry. try again")
                 continue
-            if float(other_bet) > self.bet:
-                print("sorry, your bet is too high. Try again")
             elif float(other_bet) > self.chips:
-                print("sorry, you dont have enough chips. Try again")
+                print("You dont have enough chips. Try again")
             else:
                 self.bet_two = float(other_bet)
                 self.remove_chips(float(other_bet))
                 break
 
+    def double_down(self):
+        if len(self.hand) == 2:
+            if validate_answer("\nYou will only get 1 more card. Confirm you want to double down: [y / n]: "):
+                self.added_wager()
+                self.bet += self.bet_two
+
     def check_for_split(self):
         if self.hand[0].value == self.hand[1].value:
-            while True:
-                choice = input("Do you want to split your cards?: [y / n]: ")
-                if choice not in ['y','n']:
-                    print('invalid input. try again')
-                    continue
-                self.split_cards = (choice == 'y')
-                return choice == 'y'
+            if validate_answer("Do you want to split your cards?: [y / n]: "):
+                self.split_cards = True
+
 
     def apply_split(self, deck):
         if self.split_cards:
-            self.additional_bet()
+            self.added_wager()
             self.hand_two = Player(0)
             self.hand_two.split_cards = True
             self.hand_two.bet = self.bet_two
@@ -223,13 +251,11 @@ class Player(Hand):
 
             print("\nFirst Hand: ")
             self.mini_card_visual()
-            print(f"Total of {self.hand_score()}\n")
             time.sleep(1)
             self.player_move(deck)
 
             print("\nSecond Hand: ")
             self.hand_two.mini_card_visual()
-            print(f"Total of {self.hand_two.hand_score()}\n")
             time.sleep(1)
             self.hand_two.player_move(deck)
 
@@ -246,15 +272,25 @@ class Player(Hand):
                 break
             if self.hand_score() == 21:
                 break
-            move = input("Would you like to hit or stand: [h or s]: ")
-            if move == "h":
+            if len(self.hand) == 2:
+                action = input("Would you like to hit, stand, or double-down: Enter [h, s, or d]: ")
+            else:
+                action = input("Would you like to hit or stand: Enter [h or s]: ")
+            if action == "d":
+                self.double_down()
+                self.hit(deck)
+                self.card_visual()
+                if self.hand_score() > 21:
+                    self.alive = False
+                break
+            if action == "h":
                 self.hit(deck)
                 if self.split_cards:
                     self.mini_card_visual()
                 else:
                     self.card_visual()
-                print(f"Card Total: {self.hand_score()}\n")
-            if move == "s":
+                # print(f"Card Total: {self.hand_score()}\n")
+            if action == "s":
                 break
 
     def compute_results(self, dealer):
@@ -285,6 +321,10 @@ class Dealer(Hand):
         # super(Dealer, self).__init__()
         self.alive = True
 
+    def reset(self):
+        self.hand = []
+        self.alive = True
+
     def card_reveal(self):
         time.sleep(1)
         print("\n________________{Dealer Cards}__________________________\n")
@@ -294,7 +334,6 @@ class Dealer(Hand):
 
     def dealer_move(self, deck):
         self.card_reveal()
-        print(f"Total of: {self.hand_score()}\n")
         while True:
             if self.hand_score() in range(17, 22):
                 return True
@@ -306,7 +345,6 @@ class Dealer(Hand):
                 self.hit(deck)
                 time.sleep(1)
                 self.card_visual()
-                print(f"Total of: {self.hand_score()}\n")
 
     def dealer_visual(self):
         card_list = []
@@ -321,80 +359,94 @@ class Dealer(Hand):
         visuals.print_cards(card_list)
 
 
-player_chips = 1_000
+def play_again():
+    if validate_answer("Would you like to play another round? [y / n]: "):
+        clear()
+        return True
+    return False
+
 
 def game():
     print("\n______________________WELCOME TO BLACKJACK!!_______________________\n")
 
-    deck = MultiDeck(4)
+    num_decks    = 6
+    player_chips = 1_000
+
+    player =  Player(player_chips)
+    dealer =  Dealer()
+    deck   =  MultiDeck(num_decks)
+
     deck.shuffle()
 
-    global player_chips
-    player, dealer = Player(player_chips), Dealer()
-
-    player.hit(deck)
-    dealer.hit(deck)
-    player.hit(deck)
-    dealer.hit(deck)
-    player.wager()
-
-    print("\n________________{Dealer Cards}__________________________\n")
-    dealer.dealer_visual()
-    time.sleep(1)
-    print("\n________________[Player Cards]__________________________\n")
-    player.card_visual()
-    print(f"Total of {player.hand_score()}\n")
-
-    if player.has_black_jack():
-        print("YOU HAVE BLACKJACK! congrats")
-        player.add_chips(player.bet * 2.5)
-        player.remaining_chips()
-        player_chips = player.chips
-        return
-
-    player.check_for_split()
-    player.apply_split(deck)
-    time.sleep(1)
-
-    if not player.split_cards:
-        player.player_move(deck)
-        if player.alive:
-            dealer.dealer_move(deck)
-        player.compute_results(dealer)
-
-        player_chips = player.chips
-        player.remaining_chips()
-
-    # PLAYER SPLIT CARDS
-    else:
-        if player.alive or player.hand_two.alive:
-            dealer.dealer_move(deck)
-
-        print("HAND ONE:")
-        player.compute_results(dealer)
-        print("HAND TWO:")
-        player.hand_two.compute_results(dealer)
-
-        # Any chips won by second hand: Add it to total balance
-        player.chips += player.hand_two.chips
-        player_chips = player.chips
-        player.remaining_chips()
-
-
-play = True
-while play:
-    game()
     while True:
-        play_again = input("Would you like to play another round? [y / n]: ")
-        if play_again not in ['y','n']:
-            print("invalid input. try again")
-            continue
-        if play_again == "n":
-            play = False
-            break
-        elif play_again == "y":
-            clear()
-            break
+        if deck.is_shuffle_time(num_decks):
+            deck.shuffle_time(num_decks)
 
-print("Thanks for playing. Goodbye.")
-# clear()
+        player.hit(deck)
+        dealer.hit(deck)
+        player.hit(deck)
+        dealer.hit(deck)
+        player.wager()
+
+        print("\n________________{Dealer Cards}__________________________\n")
+        dealer.dealer_visual()
+        time.sleep(1)
+        print("\n________________[Player Cards]__________________________\n")
+        player.card_visual()
+
+        if player.has_black_jack():
+            print("YOU HAVE BLACKJACK!\n")
+            player.add_chips(player.bet * 2.5)
+            player.remaining_chips()
+            player_chips = player.chips
+            if play_again():
+                player.reset()
+                dealer.reset()
+                continue
+            else:
+                break
+
+        player.check_for_split()
+        player.apply_split(deck)
+        time.sleep(1)
+
+        if not player.split_cards:
+            player.player_move(deck)
+            if player.alive:
+                dealer.dealer_move(deck)
+            player.compute_results(dealer)
+
+            player_chips = player.chips
+            player.remaining_chips()
+            if play_again():
+                player.reset()
+                dealer.reset()
+                continue
+            else:
+                break
+
+        # PLAYER SPLIT CARDS
+        else:
+            if player.alive or player.hand_two.alive:
+                dealer.dealer_move(deck)
+
+            print("HAND ONE:")
+            player.compute_results(dealer)
+            print("HAND TWO:")
+            player.hand_two.compute_results(dealer)
+
+            # Any chips won by second hand: Add it to total balance
+            player.chips += player.hand_two.chips
+            player_chips = player.chips
+            player.remaining_chips()
+            if play_again():
+                player.reset()
+                dealer.reset()
+                continue
+            else:
+                break
+
+    print("Thanks for playing. Goodbye.")
+
+if __name__ == "__main__":
+    game()
