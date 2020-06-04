@@ -239,7 +239,8 @@ class Player(Hand):
             if validate_answer("Do you want to split your cards?: [y / n]: "):
                 self.split_cards = True
 
-
+    # initiate second hand as a Player with 0 chips, split_card status set to True and bet status set to 'bet_two' 
+    # hand_two tied to bet_two; simple to account for & calculate total chips to reward player upon end of round  
     def apply_split(self, deck):
         if self.split_cards:
             self.added_wager()
@@ -373,7 +374,7 @@ def play_again():
 def game():
     print("\n______________________WELCOME TO BLACKJACK!!_______________________\n")
 
-    num_decks    = 1
+    num_decks    = 6
     player_chips = 1_000
 
     player =  Player(player_chips)
