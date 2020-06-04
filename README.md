@@ -1,11 +1,11 @@
 # BlackJack cardgame
  
-`visuals` file contains variety of ways to represent cards. a nicer, prettier way to output to user. 
-note: if terminal width is too narrow, it may have an affect on the way cards are outputed
+`visuals` file contains variety of ways to represent cards. a nicer, prettier way to output to user  
+ - note: if terminal width is too narrow, it may have an affect on the way cards are outputed
 
 Game is played with 6 52-card Decks
 
-Standard sasino rules:  
+Standard casino rules:  
   - Player vs Dealer: 
   - Player starts with $1,000.00 to wager with. Ability to continue playing until balance hits $00.00
   - Both dealt two cards, with Dealer having one face down or hidden. 
