@@ -3,7 +3,7 @@
 `visuals` file contains variety of ways to represent cards. a nicer, prettier way to output to user  
  - note: if terminal width is too narrow, it may have an affect on the way cards are outputed
 
-Game is played with 6 52-card Decks
+Game is played with 6 52-card Decks. Deck will reshuffle after 50% cards are drawn  
   
 Player starts with $1,000.00 to wager with ability to continue playing until balance hits $00.00
 
