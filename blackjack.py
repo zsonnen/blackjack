@@ -56,6 +56,9 @@ class Deck:
     def draw_card(self):
         return self.cards.pop()
 
+    def reset(self):
+        self.cards = [Card(value, suit) for suit in self.suits for value in self.values]
+
     def sort_deck(self):
         suit_ranks = dict(Spades=3, Hearts=2, Diamonds=1, Clubs=0)
 
@@ -101,18 +104,18 @@ class MultiDeck(Deck):
         Deck.__init__(self)
         self.values = Deck.values * num_decks
 
-    #Shuffle when deck is at 50% length
+    # reshuffle when deck is < 50% length
     def is_shuffle_time(self, num_decks):
         return  len(self) < (len(MultiDeck(num_decks))/2)
 
-    def shuffle_time(self, num_decks):
+    def shuffle_time(self):
         print("Reshuffling the Deck...\n")
         time.sleep(1)
         print("Reshuffling the Deck...\n")
         time.sleep(1)
         print("Reshuffling the Deck...\n")
         time.sleep(1)
-        deck = MultiDeck(num_decks)
+        self.reset()
         self.shuffle()
 
 
@@ -370,7 +373,7 @@ def play_again():
 def game():
     print("\n______________________WELCOME TO BLACKJACK!!_______________________\n")
 
-    num_decks    = 6
+    num_decks    = 1
     player_chips = 1_000
 
     player =  Player(player_chips)
@@ -381,7 +384,7 @@ def game():
 
     while True:
         if deck.is_shuffle_time(num_decks):
-            deck.shuffle_time(num_decks)
+            deck.shuffle_time()
 
         player.hit(deck)
         dealer.hit(deck)
