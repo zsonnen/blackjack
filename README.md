@@ -5,12 +5,13 @@
 
 Game is played with 6 52-card Decks
   
-Player starts with $1,000.00 to wager with. Ability to continue playing until balance hits $00.00
+Player starts with $1,000.00 to wager with ability to continue playing until balance hits $00.00
 
 Standard casino rules:  
   - Player vs Dealer: 
   - Both dealt two cards, with Dealer having one face down or hidden. 
   - Player goes first, and chooses if they want to hit or stay. 
+  - Two more options, only when player has initial two cards    
   - Option to `Double Down`:
     - player may enter additional wager up to, but not greater than original wager. 
     - If chosen, player receives one more card, and only one more card. 
