@@ -12,11 +12,15 @@ visuals file imported: numerous pretty ways to display cards
 def clear():
     os.system('cls' if os.name == 'nt' else 'clear')
 
-def validate_answer(question):
+
+def validate_answer(question, choices):
     while True:
         answer = input(question)
-        if answer in ['y', 'n']:
-            return answer == 'y'
+        if answer in choices:
+            return answer == choices[0]
+
+yes_no   = ['y', 'n']
+hit_stay = ['h', 's']
 
 
 Card = collections.namedtuple('Card', ['value', 'suit'])
@@ -106,7 +110,7 @@ class MultiDeck(Deck):
 
     #Shuffle when deck is < 50% length
     def is_shuffle_time(self, num_decks):
-        return  len(self) < self.length
+        return  len(self) < (self.length / 2)
 
     def shuffle_time(self):
         print("Reshuffling the Deck...\n")
@@ -143,14 +147,13 @@ class Hand:
         self.add(card)
 
     def hand_score(self):
+        self.card_val = [10 if card.value in ['J','Q','K'] else 1 if card.value == 'A'
+                         else int(card.value) for card in self.hand]
+
+        self.card_scores = dict(zip(self.hand, self.card_val))
         score = 0
         for card in self.hand:
-            if card.value in ['J','Q','K']:
-                card_score = 10
-            elif card.value == 'A':
-                card_score = 1
-            else:
-                card_score = int(card.value)
+            card_score = self.card_scores[card]
             score += card_score
         if any(card.value == 'A' for card in self.hand) and score <= 11:
             score += 10
@@ -174,6 +177,7 @@ class Hand:
 
         visuals.print_cards(card_list)
         print(f"\nTotal of: {self.hand_score()}\n")
+
 
 
 class Player(Hand):
@@ -228,15 +232,17 @@ class Player(Hand):
 
     def double_down(self):
         if len(self.hand) == 2:
-            if validate_answer("\nYou will only get 1 more card. Confirm you want to double down: [y / n]: "):
+            if validate_answer("\nYou will only get 1 more card. Confirm you want to double down: [y / n]: ", yes_no):
                 self.added_wager()
                 self.bet += self.bet_two
+                self.double = True
+            else:
+                self.double = False
 
     def check_for_split(self):
         if self.hand[0].value == self.hand[1].value:
-            if validate_answer("Do you want to split your cards?: [y / n]: "):
+            if validate_answer("Do you want to split your cards?: [y / n]: ", yes_no):
                 self.split_cards = True
-
 
     def apply_split(self, deck):
         if self.split_cards:
@@ -265,6 +271,13 @@ class Player(Hand):
         time.sleep(1)
         print(f"You have ${self.chips} remaining\n")
 
+    def visual_move(self, deck):
+        self.hit(deck)
+        if self.split_cards:
+            self.mini_card_visual()
+        else:
+            self.card_visual()
+
     def player_move(self, deck):
         assert isinstance(deck, type(Deck()))
         while True:
@@ -274,26 +287,27 @@ class Player(Hand):
             if self.hand_score() == 21:
                 break
             if len(self.hand) == 2:
-                action = input("Would you like to hit, stand, or double-down: Enter [h, s, or d]: ")
-                if action == "d":
+                double =  validate_answer("Would you like to double-down: [y / n]: ", yes_no)
+                if double:
                     self.double_down()
-                    self.hit(deck)
-                    self.card_visual()
-                    if self.hand_score() > 21:
-                        self.alive = False
-                    break
+                    if self.double:
+                        self.visual_move(deck)
+                        if self.hand_score() > 21:
+                            self.alive = False
+                        break
+
+                # Chose either to not double-down, or did choose double-down, but upon confirmation, chose 'no'
+                if not double or not self.double:
+                    if validate_answer("Would you like to hit or stand: Enter [h or s]: ", hit_stay):
+                        self.visual_move(deck)
+                    else:
+                        break
+            # When hand has more than 2 cards
             else:
-                action = input("Would you like to hit or stand: Enter [h or s]: ")
-                if action not in ['h', 's']:
-                    print('invalid input. try again')
-            if action == "h":
-                self.hit(deck)
-                if self.split_cards:
-                    self.mini_card_visual()
+                if validate_answer("Would you like to hit or stand: Enter [h or s]: ", hit_stay):
+                    self.visual_move(deck)
                 else:
-                    self.card_visual()
-            if action == "s":
-                break
+                    break
 
     def compute_results(self, dealer):
         assert isinstance(dealer, type(Dealer()))
@@ -360,8 +374,9 @@ class Dealer(Hand):
         visuals.print_cards(card_list)
 
 
+
 def play_again():
-    if validate_answer("Would you like to play another round? [y / n]: "):
+    if validate_answer("Would you like to play another round? [y / n]: ", yes_no):
         clear()
         return True
     return False
