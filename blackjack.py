@@ -29,7 +29,6 @@ class Deck:
     suit_symbols = ['♠','♦','♥','♣']
 
     def __init__(self):
-        # super(Deck, self).__init__()
         self.cards = [Card(value, suit) for suit in self.suits for value in self.values]
 
     def __repr__(self):
