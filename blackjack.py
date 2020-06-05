@@ -101,12 +101,13 @@ class Deck:
 class MultiDeck(Deck):
 
     def __init__(self, num_decks):
-        Deck.__init__(self)
-        self.values = Deck.values * num_decks
+        super().__init__()
+        self.values = super().values * num_decks
+        self.length = len(self) * num_decks
 
-    # reshuffle when deck is < 50% length
+    #Shuffle when deck is < 50% length
     def is_shuffle_time(self, num_decks):
-        return  len(self) < (len(MultiDeck(num_decks))/2)
+        return  len(self) < self.length
 
     def shuffle_time(self):
         print("Reshuffling the Deck...\n")
@@ -122,7 +123,6 @@ class MultiDeck(Deck):
 class Hand:
 
     def __init__(self):
-        # super(Hand, self).__init__()
         self.hand = []
 
     def __repr__(self):
@@ -180,8 +180,7 @@ class Hand:
 class Player(Hand):
 
     def __init__(self, chips):
-        Hand.__init__(self)
-        # super(Player, self).__init__()
+        super().__init__()
         self.chips = chips
         self.bet = 0
         self.alive = True
@@ -239,8 +238,7 @@ class Player(Hand):
             if validate_answer("Do you want to split your cards?: [y / n]: "):
                 self.split_cards = True
 
-    # initiate second hand as a Player with 0 chips, split_card status set to True and bet status set to 'bet_two' 
-    # hand_two tied to bet_two; simple to account for & calculate total chips to reward player upon end of round  
+
     def apply_split(self, deck):
         if self.split_cards:
             self.added_wager()
@@ -322,8 +320,7 @@ class Player(Hand):
 class Dealer(Hand):
 
     def __init__(self):
-        Hand.__init__(self)
-        # super(Dealer, self).__init__()
+        super().__init__()
         self.alive = True
 
     def reset(self):
@@ -374,7 +371,7 @@ def play_again():
 def game():
     print("\n______________________WELCOME TO BLACKJACK!!_______________________\n")
 
-    num_decks    = 6
+    num_decks    = 1
     player_chips = 1_000
 
     player =  Player(player_chips)
