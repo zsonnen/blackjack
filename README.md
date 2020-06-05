@@ -5,11 +5,11 @@
 
 Game is played with 6 52-card Decks. reshuffle after 50% cards are drawn  
   
-Player starts with $1,000.00 to wager with ability to continue playing until balance hits $00.00
+Player starts with $1,000.00 to wager with, and can continue playing until balance hits $00.00
 
 Standard casino rules:  
   - Player vs Dealer: 
-  - Both dealt two cards, with Dealer having one face down or hidden. 
+  - Both dealt two cards, with Dealer having one face down (or hidden). 
   - Player goes first, and chooses if they want to hit or stay. 
   - Two more options, only when player has initial two cards    
   - Option to `Double Down`:
@@ -27,3 +27,8 @@ Standard casino rules:
   - If initial two cards dealt add to 21, player has `BlackJack` and is paid at 1.5:1 wager placed (ex: getting a BlackJack on an $100 wager would earn $150)   
     
   - Any non-blackjack win: hand is paid 1:1 match of wager placed for that hand
+  
+  
+  Other features:  not utilized in the game, but included  
+  - Deck method `deck_card_visuals` will display a card-reprensation visual for each card in the Deck  
+  - Deck method `deck_visual` will display card-representation visuals for the Full deck in 4 rows, each row a different suit
