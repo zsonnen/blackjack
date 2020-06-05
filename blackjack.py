@@ -105,7 +105,7 @@ class MultiDeck(Deck):
 
     def __init__(self, num_decks):
         super().__init__()
-        self.values = Deck.values * num_decks
+        self.values = super().values * num_decks
         self.cards = [Card(value, suit) for suit in self.suits for value in self.values]
         self.length = len(self)
 
