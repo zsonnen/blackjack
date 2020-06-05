@@ -110,7 +110,7 @@ class MultiDeck(Deck):
         self.length = len(self)
 
     #Shuffle when deck is < 50% length
-    def is_shuffle_time(self, num_decks):
+    def is_shuffle_time(self):
         return  len(self) < (self.length / 2)
 
     def shuffle_time(self):
@@ -396,7 +396,7 @@ def game():
     deck.shuffle()
 
     while True:
-        if deck.is_shuffle_time(num_decks):
+        if deck.is_shuffle_time():
             deck.shuffle_time()
 
         player.hit(deck)
