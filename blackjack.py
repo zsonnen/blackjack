@@ -385,7 +385,7 @@ def play_again():
 def game():
     print("\n______________________WELCOME TO BLACKJACK!!_______________________\n")
 
-    num_decks    = 1
+    num_decks    = 6
     player_chips = 1_000
 
     player =  Player(player_chips)
