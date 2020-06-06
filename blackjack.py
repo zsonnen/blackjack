@@ -180,7 +180,6 @@ class Hand:
         print(f"\nTotal of: {self.hand_score()}\n")
 
 
-
 class Player(Hand):
 
     def __init__(self, chips):
@@ -196,22 +195,20 @@ class Player(Hand):
     def remove_chips(self, chips):
         self.chips -= chips
 
-    def reset(self):
-        self.hand = []
-        self.alive = True
-        self.split_cards = False
-        self.bet, self.bet_two = 0, 0
+    def remaining_chips(self):
+        # time.sleep(1)
+        print(f"\nYour balance is currently: ${self.chips:,.2f}\n")
 
     def has_black_jack(self):
         return len(self.hand) == 2 and self.hand_score() == 21
 
     def wager(self):
         while True:
-            bet = input(f"You have ${self.chips:,.2f} \nHow much would you like to bet?: $")
+            self.remaining_chips()
+            bet = input(f"How much would you like to bet?: $")
             if not bet.isdecimal():
-                print("invalid entry. try again")
                 continue
-            if float(bet) > self.chips:
+            elif float(bet) > self.chips:
                 print("sorry, you dont have enough chips. Try again")
             else:
                 self.bet = float(bet)
@@ -220,25 +217,26 @@ class Player(Hand):
 
     def added_wager(self):
         while True:
-            other_bet = input(f"\nEnter additional wager. You may bet up to your original ${self.bet} or less: $")
-            if not other_bet.isdecimal() or float(other_bet) > self.bet:
-                print("invalid entry. try again")
+            self.remaining_chips()
+            bet = input(f"\nEnter additional wager. You may bet up to your original ${self.bet} or less: $")
+            if not bet.isdecimal() or float(bet) > self.bet:
                 continue
-            elif float(other_bet) > self.chips:
+            elif float(bet) > self.chips:
                 print("You dont have enough chips. Try again")
             else:
-                self.bet_two = float(other_bet)
-                self.remove_chips(float(other_bet))
+                self.bet_two = float(bet)
+                self.remove_chips(float(bet))
                 break
 
-    def double_down(self):
-        if len(self.hand) == 2:
-            if validate_answer("\nYou will only get 1 more card. Confirm you want to double down: [y / n]: ", yes_no):
-                self.added_wager()
-                self.bet += self.bet_two
-                self.double = True
-            else:
-                self.double = False
+    def confirm_double(self):
+        return validate_answer("\nYou will only get 1 more card. Confirm you want to double down: [y / n]: ", yes_no)
+
+    def double_down(self, deck):
+        self.added_wager()
+        self.bet += self.bet_two
+        self.visual_move(deck)
+        if self.hand_score() > 21:
+            self.alive = False
 
     def check_for_split(self):
         if self.hand[0].value == self.hand[1].value:
@@ -267,11 +265,6 @@ class Player(Hand):
             time.sleep(1)
             self.hand_two.player_move(deck)
 
-
-    def remaining_chips(self):
-        time.sleep(1)
-        print(f"You have ${self.chips} remaining\n")
-
     def visual_move(self, deck):
         self.hit(deck)
         if self.split_cards:
@@ -288,47 +281,45 @@ class Player(Hand):
             if self.hand_score() == 21:
                 break
             if len(self.hand) == 2:
-                double =  validate_answer("Would you like to double-down: [y / n]: ", yes_no)
-                if double:
-                    self.double_down()
-                    if self.double:
-                        self.visual_move(deck)
-                        if self.hand_score() > 21:
-                            self.alive = False
-                        break
-
-                # Chose either to not double-down, or did choose double-down, but upon confirmation, chose 'no'
-                if not double or not self.double:
-                    if validate_answer("Would you like to hit or stand: Enter [h or s]: ", hit_stay):
-                        self.visual_move(deck)
-                    else:
-                        break
-            # When hand has more than 2 cards
+                action = input("Would you like to hit, stand, or double-down? Enter [h, s, or d]: ")
             else:
-                if validate_answer("Would you like to hit or stand: Enter [h or s]: ", hit_stay):
-                    self.visual_move(deck)
-                else:
-                    break
+                action = input("Would you like to hit or stand: Enter [h or s]: ")
+
+            if action == 'd':
+                if len(self.hand) == 2:
+                    if self.confirm_double():
+                        self.double_down(deck)
+                        break
+            if action == "h":
+                self.visual_move(deck)
+            if action == "s":
+                break
 
     def compute_results(self, dealer):
         assert isinstance(dealer, type(Dealer()))
         if self.alive and dealer.alive:
             if self.hand_score() > dealer.hand_score():
-                print("WINNER!!\n")
+                print("WINNER!\n")
                 self.add_chips(self.bet * 2)
 
             elif self.hand_score() == dealer.hand_score():
-                print("PUSH!!\n")
+                print("PUSH!\n")
                 self.add_chips(self.bet)
             else:
-                print("LOSER!! Dealer Wins\n")
+                print("LOSER! Dealer Wins\n")
 
         elif not self.alive:
-            print("BUST!! LOSER!!\n")
+            print("BUST! LOSER!\n")
 
         else:
-            print("DEALER BUSTS. YOU WIN!!\n")
+            print("DEALER BUSTS. YOU WIN!\n")
             self.add_chips(self.bet * 2)
+
+    def reset(self):
+        self.hand = []
+        self.alive = True
+        self.split_cards = False
+        self.bet, self.bet_two = 0, 0
 
 
 class Dealer(Hand):
@@ -389,9 +380,9 @@ def game():
     num_decks    = 6
     player_chips = 1_000
 
+    deck   =  MultiDeck(num_decks)
     player =  Player(player_chips)
     dealer =  Dealer()
-    deck   =  MultiDeck(num_decks)
 
     deck.shuffle()
 
