@@ -6,12 +6,11 @@ import visuals
 
 """
 BLACKJACK GAME:
-visuals file imported: numerous pretty ways to display cards
+visuals file: numerous pretty ways to display cards
 """
 
 def clear():
     os.system('cls' if os.name == 'nt' else 'clear')
-
 
 def validate_answer(question, choices):
     while True:
@@ -24,7 +23,6 @@ hit_stay = ['h', 's']
 
 
 Card = collections.namedtuple('Card', ['value', 'suit'])
-
 
 class Deck:
 
@@ -47,12 +45,6 @@ class Deck:
     def __getitem__(self, position):
         return self.cards[position]
 
-    def __add__(self, other):
-        assert isinstance(other, type(self))
-        larger_deck = self.__class__()
-        larger_deck.cards = self.cards[:] + other.cards[:]
-        return larger_deck
-
     def shuffle(self):
         random.shuffle(self.cards)
 
@@ -61,15 +53,6 @@ class Deck:
 
     def reset(self):
         self.cards = [Card(value, suit) for suit in self.suits for value in self.values]
-
-    def sort_deck(self):
-        suit_ranks = dict(Spades=3, Hearts=2, Diamonds=1, Clubs=0)
-
-        def card_rank(card):
-            rank = self.values.index(card.value)
-            return rank * len(suit_ranks) + suit_ranks[card.suit]
-
-        self.cards = sorted(self.cards, key=card_rank)
 
     def deck_visual(self):
         spades, diamonds, hearts, clubs = [], [], [], []
@@ -122,7 +105,6 @@ class MultiDeck(Deck):
         time.sleep(1)
         self.reset()
         self.shuffle()
-
 
 class Hand:
 
@@ -186,6 +168,7 @@ class Player(Hand):
         super().__init__()
         self.chips = chips
         self.bet = 0
+        self.profit = 0
         self.alive = True
         self.split_cards = False
 
@@ -196,7 +179,6 @@ class Player(Hand):
         self.chips -= chips
 
     def remaining_chips(self):
-        # time.sleep(1)
         print(f"\nYour balance is currently: ${self.chips:,.2f}\n")
 
     def has_black_jack(self):
@@ -218,7 +200,7 @@ class Player(Hand):
     def added_wager(self):
         while True:
             self.remaining_chips()
-            bet = input(f"\nEnter additional wager. You may bet up to your original ${self.bet} or less: $")
+            bet = input(f"Enter additional wager. You may bet up to your original ${self.bet} or less: $")
             if not bet.isdecimal() or float(bet) > self.bet:
                 continue
             elif float(bet) > self.chips:
@@ -300,11 +282,10 @@ class Player(Hand):
         if self.alive and dealer.alive:
             if self.hand_score() > dealer.hand_score():
                 print("WINNER!\n")
-                self.add_chips(self.bet * 2)
-
+                self.profit = 2
             elif self.hand_score() == dealer.hand_score():
                 print("PUSH!\n")
-                self.add_chips(self.bet)
+                self.profit = 1
             else:
                 print("LOSER! Dealer Wins\n")
 
@@ -313,12 +294,17 @@ class Player(Hand):
 
         else:
             print("DEALER BUSTS. YOU WIN!\n")
-            self.add_chips(self.bet * 2)
+            self.profit = 2
+        self.settle()
+
+    def settle(self):
+        self.add_chips(self.profit*self.bet)
 
     def reset(self):
         self.hand = []
         self.alive = True
         self.split_cards = False
+        self.profit = 0
         self.bet, self.bet_two = 0, 0
 
 
@@ -355,7 +341,6 @@ class Dealer(Hand):
 
     def dealer_visual(self):
         card_list = []
-
         hidden_card = visuals.reg_hidden_card
         card_list.append(hidden_card)
 
@@ -366,13 +351,11 @@ class Dealer(Hand):
         visuals.print_cards(card_list)
 
 
-
 def play_again():
     if validate_answer("Would you like to play another round? [y / n]: ", yes_no):
         clear()
         return True
     return False
-
 
 def game():
     print("\n______________________WELCOME TO BLACKJACK!!_______________________\n")
@@ -390,11 +373,11 @@ def game():
         if deck.is_shuffle_time():
             deck.shuffle_time()
 
-        player.hit(deck)
-        dealer.hit(deck)
-        player.hit(deck)
-        dealer.hit(deck)
         player.wager()
+        player.hit(deck)
+        dealer.hit(deck)
+        player.hit(deck)
+        dealer.hit(deck)
 
         print("\n________________{Dealer Cards}__________________________\n")
         dealer.dealer_visual()
@@ -404,7 +387,8 @@ def game():
 
         if player.has_black_jack():
             print("YOU HAVE BLACKJACK!\n")
-            player.add_chips(player.bet * 2.5)
+            player.profit = 2.5
+            player.settle()
             player.remaining_chips()
             player_chips = player.chips
             if play_again():
@@ -423,7 +407,6 @@ def game():
             if player.alive:
                 dealer.dealer_move(deck)
             player.compute_results(dealer)
-
             player_chips = player.chips
             player.remaining_chips()
             if play_again():
@@ -437,7 +420,6 @@ def game():
         else:
             if player.alive or player.hand_two.alive:
                 dealer.dealer_move(deck)
-
             print("HAND ONE:")
             player.compute_results(dealer)
             print("HAND TWO:")
