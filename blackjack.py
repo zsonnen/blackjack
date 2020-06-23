@@ -30,8 +30,9 @@ class Deck:
     suits = "Spades Diamonds Hearts Clubs".split()
     suit_symbols = ['♠','♦','♥','♣']
 
-    def __init__(self):
-        self.cards = [Card(value, suit) for suit in self.suits for value in self.values]
+    def __init__(self, num_decks = 1):
+        self.cards = [Card(value, suit) for suit in self.suits for value in self.values] * num_decks
+        self.length = len(self)
 
     def __repr__(self):
         deck_cards = "Deck()\n"
@@ -45,11 +46,25 @@ class Deck:
     def __getitem__(self, position):
         return self.cards[position]
 
+    def draw_card(self):
+        return self.cards.pop()    
+
     def shuffle(self):
         random.shuffle(self.cards)
-
-    def draw_card(self):
-        return self.cards.pop()
+    
+    #Shuffle when deck is < 50% full length
+    def is_shuffle_time(self):
+        return  len(self) < (self.length / 2)
+    
+    def shuffle_time(self):
+        print("Reshuffling the Deck...\n")
+        time.sleep(1)
+        print("Reshuffling the Deck...\n")
+        time.sleep(1)
+        print("Reshuffling the Deck...\n")
+        time.sleep(1)
+        self.reset()
+        self.shuffle()    
 
     def reset(self):
         self.cards = [Card(value, suit) for suit in self.suits for value in self.values]
@@ -66,7 +81,6 @@ class Deck:
                 hearts.append(card_vis)
             else:
                 clubs.append(card_vis)
-
         visuals.print_cards(spades)
         visuals.print_cards(diamonds)
         visuals.print_cards(hearts)
@@ -76,28 +90,6 @@ class Deck:
         for card in self.cards:
             card_vis = visuals.tiny_card_visual(card)
             visuals.print_card(card_vis)
-
-class MultiDeck(Deck):
-
-    def __init__(self, num_decks):
-        super().__init__()
-        self.values = super().values * num_decks
-        self.cards = [Card(value, suit) for suit in self.suits for value in self.values]
-        self.length = len(self)
-
-    #Shuffle when deck is < 50% full length
-    def is_shuffle_time(self):
-        return  len(self) < (self.length / 2)
-
-    def shuffle_time(self):
-        print("Reshuffling the Deck...\n")
-        time.sleep(1)
-        print("Reshuffling the Deck...\n")
-        time.sleep(1)
-        print("Reshuffling the Deck...\n")
-        time.sleep(1)
-        self.reset()
-        self.shuffle()
 
 class Hand:
 
@@ -154,13 +146,13 @@ class Hand:
 
 class Player(Hand):
 
-    def __init__(self, chips):
+    def __init__(self, chips, bet=0, split_cards = False):
         super().__init__()
         self.chips = chips
-        self.bet = 0
+        self.bet = bet
         self.profit = 0
         self.alive = True
-        self.split_cards = False
+        self.split_cards = split_cards
         self.has_blackjack = False
     
     def deal_cards(self, deck):
@@ -228,9 +220,7 @@ class Player(Hand):
     def apply_split(self, deck):
         if self.split_cards:
             self.added_wager()
-            self.hand_two = Player(0)
-            self.hand_two.split_cards = True
-            self.hand_two.bet = self.bet_two
+            self.hand_two = Player(0, split_cards=True, bet=self.bet_two)
 
             transfer_card = self.remove_card()
             self.hand_two.add_card(transfer_card)
@@ -309,7 +299,6 @@ class Player(Hand):
         self.profit = 0
         self.bet, self.bet_two = 0, 0
 
-
 class Dealer(Hand):
 
     def __init__(self):
@@ -366,7 +355,7 @@ def play_again():
 
 def print_line(word):
     print(f"\n______________________[{word}]______________________________\n")
-
+    
 
 def game():
     print_line('WELCOME TO BLACKJACK!!')
@@ -374,7 +363,7 @@ def game():
     num_decks    = 6
     player_chips = 1_000
 
-    deck   =  MultiDeck(num_decks)
+    deck   =  Deck(num_decks)
     player =  Player(player_chips)
     dealer =  Dealer()
 
@@ -396,14 +385,7 @@ def game():
             player.player_move(deck)
             if player.alive:
                 dealer.dealer_move(deck)
-            player.compute_results(dealer)            
-            player.print_balance()            
-            if play_again():
-                player.reset()
-                dealer.reset()
-                continue
-            else:
-                break
+            player.compute_results(dealer)        
         # PLAYER SPLIT CARDS
         else:
             if player.alive or player.hand_two.alive:
@@ -415,13 +397,14 @@ def game():
 
             # Any chips won by second hand: Add it to total balance
             player.chips += player.hand_two.chips
-            player.print_balance()
-            if play_again():
-                player.reset()
-                dealer.reset()
-                continue
-            else:
-                break
+
+        player.print_balance()
+        if play_again():
+            player.reset()
+            dealer.reset()
+            continue
+        else:
+            break
 
     print("Thanks for playing. Goodbye.")
 
