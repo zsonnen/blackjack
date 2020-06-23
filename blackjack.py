@@ -67,7 +67,7 @@ class Deck:
         self.shuffle()    
 
     def reset(self):
-        self.cards = [Card(value, suit) for suit in self.suits for value in self.values]
+        self.cards = [Card(value, suit) for suit in self.suits for value in self.values] * num_decks
 
     def deck_visual(self):
         spades, diamonds, hearts, clubs = [], [], [], []
@@ -135,6 +135,7 @@ class Hand:
             card_list.append(card_vis)
         visuals.print_cards(card_list)
         print(f"\nTotal of: {self.hand_score()}\n")
+        time.sleep(1)
 
     def mini_card_visual(self):
         card_list = []
@@ -143,6 +144,7 @@ class Hand:
             card_list.append(card_vis)
         visuals.print_cards(card_list)
         print(f"\nTotal of: {self.hand_score()}\n")
+        time.sleep(1)
 
 class Player(Hand):
 
@@ -229,11 +231,10 @@ class Player(Hand):
 
             print("\nFirst Hand: ")
             self.mini_card_visual()
-            time.sleep(1)
             self.player_move(deck)
+            
             print("\nSecond Hand: ")
             self.hand_two.mini_card_visual()
-            time.sleep(1)
             self.hand_two.player_move(deck)
             time.sleep(1)
 
@@ -310,7 +311,6 @@ class Dealer(Hand):
         self.hit(deck)
         print_line('Dealer Cards')
         self.dealer_visual()
-        time.sleep(1)
 
     def reset(self):
         self.hand = []
@@ -320,7 +320,6 @@ class Dealer(Hand):
         print_line('Dealer Cards')
         time.sleep(1)
         self.card_visual()
-        time.sleep(1)
 
     def dealer_move(self, deck):
         self.card_reveal()
@@ -345,6 +344,7 @@ class Dealer(Hand):
             card_list.append(card_vis)
 
         visuals.print_cards(card_list)
+        time.sleep(1)
 
 
 def play_again():
