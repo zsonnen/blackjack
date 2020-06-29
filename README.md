@@ -15,7 +15,7 @@ Standard casino rules:
   - Option to `Double Down`:
     - player may enter additional wager up to, but not greater than original wager. 
     - If chosen, player receives one more card, and only one more card. 
-  - Option to `Split`:
+  - Option to `Split` if both cards have same value:
     - If chosen, player may place down an additional wager, for the second hand.   
     - The second wager can be up to, but no greater than original wager
     
@@ -29,6 +29,4 @@ Standard casino rules:
   - Any non-blackjack win: hand is paid 1:1 match of wager placed for that hand
   
   
-  Other features:  not utilized in the game, but included  
-  - Deck method `deck_card_visuals` will display a card-reprensation visual for each card in the Deck  
-  - Deck method `deck_visual` will display card-representation visuals for the Full deck in 4 rows, each row a different suit
+
