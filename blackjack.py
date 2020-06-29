@@ -19,7 +19,6 @@ def validate_answer(question, choices):
             return answer == choices[0]
 
 yes_no   = ['y', 'n']
-hit_stay = ['h', 's']
 
 
 Card = collections.namedtuple('Card', ['value', 'suit'])
@@ -85,11 +84,6 @@ class Deck:
         visuals.print_cards(diamonds)
         visuals.print_cards(hearts)
         visuals.print_cards(clubs)
-
-    def deck_card_visuals(self):
-        for card in self.cards:
-            card_vis = visuals.tiny_card_visual(card)
-            visuals.print_card(card_vis)
 
 class Hand:
 
