@@ -1,7 +1,10 @@
+from __future__ import annotations
 import random
 import collections
 import time
 import os
+from typing import Sequence
+import subprocess as sp 
 import visuals
 
 """
@@ -10,15 +13,15 @@ visuals file imported: numerous pretty ways to display cards
 """
 
 def clear():
-    os.system('cls' if os.name == 'nt' else 'clear')
+    sp.run(('cls' if os.name == 'nt' else 'clear'), shell=True)
 
-def validate_answer(question, choices):
+def validate_answer(question: str, choices: Sequence[str]) -> bool:
     while True:
-        answer = input(question)
+        answer = input(question).lower()
         if answer in choices:
             return answer == choices[0]
 
-yes_no   = ['y', 'n']
+YES_NO = 'yn'
 
 
 Card = collections.namedtuple('Card', ['value', 'suit'])
@@ -30,7 +33,8 @@ class Deck:
     suit_symbols = ['♠','♦','♥','♣']
 
     def __init__(self, num_decks = 1):
-        self.cards = [Card(value, suit) for suit in self.suits for value in self.values] * num_decks
+        self.num_decks = num_decks
+        self.cards = [Card(value, suit) for suit in self.suits for value in self.values] * self.num_decks
         self.length = len(self)
 
     def __repr__(self):
@@ -56,17 +60,14 @@ class Deck:
         return  len(self) < (self.length / 2)
     
     def shuffle_time(self):
-        print("Reshuffling the Deck...\n")
-        time.sleep(1)
-        print("Reshuffling the Deck...\n")
-        time.sleep(1)
+        clear()
         print("Reshuffling the Deck...\n")
         time.sleep(1)
         self.reset()
         self.shuffle()    
 
     def reset(self):
-        self.cards = [Card(value, suit) for suit in self.suits for value in self.values] * num_decks
+        self.cards = [Card(value, suit) for suit in self.suits for value in self.values] * self.num_decks
 
     def deck_visual(self):
         spades, diamonds, hearts, clubs = [], [], [], []
@@ -96,18 +97,17 @@ class Hand:
             hand_cards += f"({card.value}-{card.suit})"
         return hand_cards
 
-    def add_card(self, *cards):
+    def add_card(self, *cards: tuple) -> None:
         for card in cards:
             self.hand.append(card)
 
     def remove_card(self):
         return self.hand.pop()
 
-    def hit(self, deck):
-        assert isinstance(deck, Deck)
+    def hit(self, deck: Deck) -> None:
         card = deck.draw_card()
         self.add_card(card)
-
+    
     def hand_score(self):
         self.card_val = [10 if card.value in ['J','Q','K'] else 1 if card.value == 'A'
                          else int(card.value) for card in self.hand]
@@ -129,7 +129,6 @@ class Hand:
             card_list.append(card_vis)
         visuals.print_cards(card_list)
         print(f"\nTotal of: {self.hand_score()}\n")
-        time.sleep(1)
 
     def mini_card_visual(self):
         card_list = []
@@ -138,7 +137,6 @@ class Hand:
             card_list.append(card_vis)
         visuals.print_cards(card_list)
         print(f"\nTotal of: {self.hand_score()}\n")
-        time.sleep(1)
 
 class Player(Hand):
 
@@ -151,7 +149,7 @@ class Player(Hand):
         self.split_cards = split_cards
         self.has_blackjack = False
     
-    def deal_cards(self, deck):
+    def deal_cards(self, deck: Deck) -> None:
         self.hit(deck)
         self.hit(deck)
         print_line('Player Cards')
@@ -160,10 +158,10 @@ class Player(Hand):
         self.split_cards = self.check_for_split()
         self.apply_split(deck)
 
-    def add_chips(self, chips):
+    def add_chips(self, chips: float) -> None:
         self.chips += chips
 
-    def remove_chips(self, chips):
+    def remove_chips(self, chips: float) -> None:
         self.chips -= chips
 
     def print_balance(self): 
@@ -174,7 +172,7 @@ class Player(Hand):
     
     def check_for_split(self):
         if self.hand[0].value == self.hand[1].value:
-            return validate_answer("Do you want to split your cards?: [y / n]: ", yes_no)            
+            return validate_answer("Do you want to split your cards?: [y / n]: ", YES_NO)            
         return False
 
     def wager(self):
@@ -184,7 +182,7 @@ class Player(Hand):
             if not bet.isdecimal():
                 continue
             elif float(bet) > self.chips:
-                print("sorry, you dont have enough chips. Try again")
+                print("sorry, you don't have enough chips. Try again")
             else:
                 self.bet = float(bet)
                 self.remove_chips(float(bet))
@@ -197,23 +195,23 @@ class Player(Hand):
             if not bet.isdecimal() or float(bet) > self.bet:
                 continue
             elif float(bet) > self.chips:
-                print("You dont have enough chips. Try again")
+                print("You don't have enough chips. Try again")
             else:
                 self.bet_two = float(bet)
                 self.remove_chips(float(bet))
                 break
 
     def confirm_double(self):
-        return validate_answer("\nYou will only get 1 more card. Confirm you want to double down: [y / n]: ", yes_no)
+        return validate_answer("\nYou will only get 1 more card. Confirm you want to double down: [y / n]: ", YES_NO)
 
-    def double_down(self, deck):
+    def double_down(self, deck: Deck) -> None:
         self.added_wager()
         self.bet += self.bet_two
         self.visual_move(deck)
         if self.hand_score() > 21:
             self.alive = False
 
-    def apply_split(self, deck):
+    def apply_split(self, deck: Deck) -> None:
         if self.split_cards:
             self.added_wager()
             self.hand_two = Player(0, split_cards=True, bet=self.bet_two)
@@ -225,22 +223,22 @@ class Player(Hand):
 
             print("\nFirst Hand: ")
             self.mini_card_visual()
+            time.sleep(1)
             self.player_move(deck)
-            
             print("\nSecond Hand: ")
             self.hand_two.mini_card_visual()
+            time.sleep(1)
             self.hand_two.player_move(deck)
             time.sleep(1)
 
-    def visual_move(self, deck):
+    def visual_move(self, deck: Deck) -> None:
         self.hit(deck)
         if self.split_cards:
             self.mini_card_visual()
         else:
             self.card_visual()
 
-    def player_move(self, deck):
-        assert isinstance(deck, Deck)
+    def player_move(self, deck: Deck) -> None:
         while True:
             if self.hand_score() > 21 or self.has_blackjack:
                 self.alive = False
@@ -261,8 +259,7 @@ class Player(Hand):
             if action == "s":
                 break
 
-    def compute_results(self, dealer):
-        assert isinstance(dealer, Dealer)
+    def compute_results(self, dealer: Dealer) -> None:
         if self.alive and dealer.alive:
             if self.hand_score() > dealer.hand_score():
                 print("WINNER!\n")
@@ -300,11 +297,12 @@ class Dealer(Hand):
         super().__init__()
         self.alive = True
     
-    def deal_cards(self, deck):
+    def deal_cards(self, deck: Deck) -> None:
         self.hit(deck)
         self.hit(deck)
         print_line('Dealer Cards')
         self.dealer_visual()
+        time.sleep(1)
 
     def reset(self):
         self.hand = []
@@ -314,15 +312,16 @@ class Dealer(Hand):
         print_line('Dealer Cards')
         time.sleep(1)
         self.card_visual()
+        time.sleep(1)
 
-    def dealer_move(self, deck):
+    def dealer_move(self, deck: Deck) -> None:
         self.card_reveal()
         while True:
             if self.hand_score() in range(17, 22):
-                return True
+                break
             if self.hand_score() > 21:
                 self.alive = False
-                return False
+                break
             if self.hand_score() < 17:
                 self.hit(deck)
                 time.sleep(1)
@@ -338,28 +337,26 @@ class Dealer(Hand):
             card_list.append(card_vis)
 
         visuals.print_cards(card_list)
-        time.sleep(1)
 
 
 def play_again():
-    if validate_answer("Would you like to play another round? [y / n]: ", yes_no):
+    if validate_answer("Would you like to play another round? [y / n]: ", YES_NO):
         clear()
         return True
     return False
 
-def print_line(word):
+def print_line(word: str) -> None:
     print(f"\n______________________[{word}]______________________________\n")
     
 
 def game():
     print_line('WELCOME TO BLACKJACK!!')
-
-    num_decks    = 6
+    num_decks = 6
     player_chips = 1_000
 
-    deck   =  Deck(num_decks)
-    player =  Player(player_chips)
-    dealer =  Dealer()
+    player = Player(player_chips)
+    dealer = Dealer()
+    deck = Deck(num_decks)
 
     deck.shuffle()
 
