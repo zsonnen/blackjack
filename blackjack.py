@@ -7,6 +7,7 @@ from typing import Sequence
 import subprocess as sp 
 import visuals
 
+
 """
 BLACKJACK GAME:
 visuals file imported: numerous pretty ways to display cards
@@ -16,8 +17,7 @@ def clear():
     sp.run(('cls' if os.name == 'nt' else 'clear'), shell=True)
 
 def validate_answer(question: str, choices: Sequence[str]) -> bool:
-    while True:
-        answer = input(question).lower()
+    while answer := input(question).lower():
         if answer in choices:
             return answer == choices[0]
 
@@ -32,22 +32,22 @@ class Deck:
     suits = "Spades Diamonds Hearts Clubs".split()
     suit_symbols = ['♠','♦','♥','♣']
 
-    def __init__(self, num_decks = 1):
+    def __init__(self, num_decks=1):
         self.num_decks = num_decks
         self.cards = [Card(value, suit) for suit in self.suits for value in self.values] * self.num_decks
         self.length = len(self)
 
     def __repr__(self):
-        deck_cards = "Deck()\n"
-        for card in self.cards:
-            deck_cards += f"({card.value}-{card.suit})"
-        return deck_cards
+        return "Deck()\n" + ''.join(f"({card.value}-{card.suit})" for card in self.cards)
 
     def __len__(self):
         return len(self.cards)
 
     def __getitem__(self, position):
         return self.cards[position]
+    
+    def __setitem__(self, position, value):
+        self.cards[position] = value
 
     def draw_card(self):
         return self.cards.pop()    
@@ -70,21 +70,14 @@ class Deck:
         self.cards = [Card(value, suit) for suit in self.suits for value in self.values] * self.num_decks
 
     def deck_visual(self):
-        spades, diamonds, hearts, clubs = [], [], [], []
-        for card in self.cards:
-            card_vis = visuals.tiny_card_visual(card)
-            if card.suit == 'Spades':
-                spades.append(card_vis)
-            elif card.suit == 'Diamonds':
-                diamonds.append(card_vis)
-            elif card.suit == 'Hearts':
-                hearts.append(card_vis)
-            else:
-                clubs.append(card_vis)
-        visuals.print_cards(spades)
-        visuals.print_cards(diamonds)
-        visuals.print_cards(hearts)
-        visuals.print_cards(clubs)
+        s = [visuals.tiny_card_visual(card) for card in self.cards if card.suit == 'Spades']
+        d = [visuals.tiny_card_visual(card) for card in self.cards if card.suit == 'Diamonds']
+        h = [visuals.tiny_card_visual(card) for card in self.cards if card.suit == 'Hearts']
+        c = [visuals.tiny_card_visual(card) for card in self.cards if card.suit == 'Clubs']
+        visuals.print_cards(s)
+        visuals.print_cards(d)
+        visuals.print_cards(h)
+        visuals.print_cards(c)
 
 class Hand:
 
@@ -92,12 +85,9 @@ class Hand:
         self.hand = []
 
     def __repr__(self):
-        hand_cards = "Hand()\n"
-        for card in self.hand:
-            hand_cards += f"({card.value}-{card.suit})"
-        return hand_cards
+        return "Hand()\n" + ''.join(f"({card.value}-{card.suit})" for card in self.hand)
 
-    def add_card(self, *cards: tuple) -> None:
+    def add_card(self, *cards: Card) -> None:
         for card in cards:
             self.hand.append(card)
 
@@ -108,7 +98,7 @@ class Hand:
         card = deck.draw_card()
         self.add_card(card)
     
-    def hand_score(self):
+    def hand_score(self) -> int:
         self.card_val = [10 if card.value in ['J','Q','K'] else 1 if card.value == 'A'
                          else int(card.value) for card in self.hand]
 
@@ -119,28 +109,21 @@ class Hand:
             score += card_score
         if any(card.value == 'A' for card in self.hand) and score <= 11:
             score += 10
-
         return score
-
+    
     def card_visual(self):
-        card_list = []
-        for card in self.hand:
-            card_vis = visuals.reg_card_visual(card)
-            card_list.append(card_vis)
+        card_list = [visuals.reg_card_visual(card) for card in self.hand]
         visuals.print_cards(card_list)
         print(f"\nTotal of: {self.hand_score()}\n")
 
     def mini_card_visual(self):
-        card_list = []
-        for card in self.hand:
-            card_vis = visuals.mini_card_visual(card)
-            card_list.append(card_vis)
+        card_list = [visuals.mini_card_visual(card) for card in self.hand]
         visuals.print_cards(card_list)
         print(f"\nTotal of: {self.hand_score()}\n")
 
 class Player(Hand):
 
-    def __init__(self, chips, bet=0, split_cards = False):
+    def __init__(self, chips, bet=0, split_cards=False):
         super().__init__()
         self.chips = chips
         self.bet = bet
@@ -310,9 +293,9 @@ class Dealer(Hand):
 
     def card_reveal(self):
         print_line('Dealer Cards')
-        time.sleep(1)
+        time.sleep(0.5)
         self.card_visual()
-        time.sleep(1)
+        time.sleep(0.5)
 
     def dealer_move(self, deck: Deck) -> None:
         self.card_reveal()
@@ -328,18 +311,11 @@ class Dealer(Hand):
                 self.card_visual()
 
     def dealer_visual(self):
-        card_list = []
         hidden_card = visuals.reg_hidden_card
-        card_list.append(hidden_card)
-
-        for card in self.hand[1:]:
-            card_vis = visuals.reg_card_visual(card)
-            card_list.append(card_vis)
-
+        card_list = [hidden_card] + [visuals.reg_card_visual(card) for card in self.hand[1:]]
         visuals.print_cards(card_list)
 
-
-def play_again():
+def play_again() -> bool:
     if validate_answer("Would you like to play another round? [y / n]: ", YES_NO):
         clear()
         return True
