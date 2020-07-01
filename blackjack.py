@@ -7,10 +7,9 @@ from typing import Sequence
 import subprocess as sp 
 import visuals
 
-
 """
 BLACKJACK GAME:
-visuals file imported: numerous pretty ways to display cards
+visuals file: numerous pretty ways to display cards
 """
 
 def clear():
@@ -109,6 +108,7 @@ class Hand:
             score += card_score
         if any(card.value == 'A' for card in self.hand) and score <= 11:
             score += 10
+            
         return score
     
     def card_visual(self):
