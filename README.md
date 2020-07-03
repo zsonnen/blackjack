@@ -1,4 +1,7 @@
 # BlackJack cardgame
+
+![playbj](https://user-images.githubusercontent.com/60955112/86469531-9aef0d80-bd07-11ea-8e6e-c7ed16d6f0b3.gif)
+
  
 `visuals` file contains variety of ways to represent cards. a nicer, prettier way to output to user  
  - note: if terminal width is too narrow, it may have an affect on the way cards are outputed
@@ -28,5 +31,3 @@ Standard casino rules:
     
   - Any non-blackjack win: hand is paid 1:1 match of wager placed for that hand
   
- ![sampleplay](https://user-images.githubusercontent.com/60955112/86468573-ab05ed80-bd05-11ea-9d90-c66ef2fa544b.gif)
-
