@@ -1,6 +1,6 @@
 # BlackJack cardgame
 
-![playbj](https://user-images.githubusercontent.com/60955112/86469531-9aef0d80-bd07-11ea-8e6e-c7ed16d6f0b3.gif)
+![sampleplay](https://user-images.githubusercontent.com/60955112/86469645-ce319c80-bd07-11ea-98d2-8012a934f1ee.gif)
 
  
 `visuals` file contains variety of ways to represent cards. a nicer, prettier way to output to user  
