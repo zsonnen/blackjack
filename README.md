@@ -28,5 +28,5 @@ Standard casino rules:
     
   - Any non-blackjack win: hand is paid 1:1 match of wager placed for that hand
   
-  ![sample](https://user-images.githubusercontent.com/60955112/86467731-ed2e2f80-bd03-11ea-8a4d-711215d17685.gif)
+ ![sampleplay](https://user-images.githubusercontent.com/60955112/86468573-ab05ed80-bd05-11ea-9d90-c66ef2fa544b.gif)
 
